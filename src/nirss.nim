@@ -1,4 +1,4 @@
-import std/[os, json, asyncdispatch, httpclient, strutils, options, sequtils, logging]
+import std/[os, json, asyncdispatch, httpclient, strutils, options, sequtils, logging, strformat]
 import dashboard
 import results, cascade
 
@@ -45,15 +45,28 @@ proc updateFeed(feed: Feed): Future[Feed] {.async.} =
 proc updateFeeds(cfg: var Config) =
   cfg.feeds = waitFor cfg.feeds.map(updateFeed).all()
 
-proc run(update = false, force = false, gen = false) =
+proc addFeedUrl(cfg: var Config, feedUrl: string) =
+  cfg.feeds.add(Feed(url: feedUrl))
+
+proc showFeeds(cfg: var Config) =
+  for feed in cfg.feeds:
+    stdout.writeLine(&"{feed.url}")
+
+proc run(update = false, force = false, gen = false, showFeeds = false, addFeed = "") =
   newConsoleLogger(lvlAll).addHandler()
+
   var cfg = Config.load().get()
   defer:
     cfg.save()
+
   if update:
     cfg.updateFeeds()
   if gen:
     cfg.buildDashboard()
+  if addFeed != "":
+    cfg.addFeedUrl(addFeed)
+  if showFeeds:
+    cfg.showFeeds()
 
 when isMainModule:
   import cligen
