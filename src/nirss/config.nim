@@ -1,4 +1,4 @@
-import std/[os, json, logging, tables]
+import std/[os, json, logging, tables, macros]
 import constants
 export tables, json
 
@@ -17,6 +17,12 @@ type
     feeds*: Table[URL, FeedMeta]
   AppConfig* = object
     bindings: Table[string, string]
+  MetaConfig* = object
+    cfg*: Config
+    meta*: Meta
+
+proc feeds*(cfg: MetaConfig): seq[Feed] =
+  cfg.cfg.feeds
 
 proc write*(cfg: Config) {.raises: [IOError, Exception].} =
   if not dirExists(ConfigDir):
@@ -45,6 +51,22 @@ proc load*(T: type Meta, create = true): T {.raises: [OSError, IOError, Exceptio
     return T.load(false)
   let contents = readFile(CacheDir / "meta.json")
   contents.parseJson.to(T)
+
+proc load*(T: type MetaConfig, create = true): T {.raises: [IOError, Exception].} =
+  T(
+    cfg: Config.load(create),
+    meta: Meta.load(create),
+  )
+
+proc write*(cfg: MetaConfig) {.raises: [IOError, Exception].} =
+  cfg.cfg.write()
+  cfg.meta.write()
+
+macro withConfig*(ident, blk) =
+  quote do:
+    var `ident` = MetaConfig.load()
+    `blk`
+    `ident`.write()
 
 when isMainModule:
   echo Config.load()

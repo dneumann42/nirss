@@ -60,6 +60,9 @@ proc updateFeeds*(cfg: var Config, meta: var Meta) =
   meta.feeds = pairs.mapIt((it[0].url, it[1])).toTable()
   cfg.feeds = pairs.mapIt(it[0])
 
+proc updateFeeds*(cfg: var MetaConfig) =
+  updateFeeds(cfg.cfg, cfg.meta)
+
 proc addFeed*(cfg: var Config, meta: var Meta, url: string, update = true) {.raises: [ValueError, Exception].} =
   if cfg.feeds.any((it) => it.url == url):
     return
@@ -69,6 +72,9 @@ proc addFeed*(cfg: var Config, meta: var Meta, url: string, update = true) {.rai
     meta.feeds[url] = FeedMeta()
   if update:
     updateFeeds(cfg, meta)
+
+proc addFeed*(cfg: var MetaConfig, url: string, update = true) {.raises: [ValueError, Exception].} =
+  addFeed(cfg.cfg, cfg.meta, url, update)
 
 proc getFeedContent*(cfg: Config, meta: Meta, url: string): string =
   if not meta.feeds.hasKey(url):
