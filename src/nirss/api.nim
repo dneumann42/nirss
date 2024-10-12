@@ -80,12 +80,4 @@ proc getFeedContent*(cfg: Config, meta: Meta, url: string): string =
   if not meta.feeds.hasKey(url):
     return "<p>Not found.</p>"
   let path = CacheDir / url.getFileName()
-  echo("READING")
   readFile(path)
-
-when isMainModule:
-  var cfg = Config.load()
-  var meta = Meta.load()
-  cfg.addFeed(meta, "https://lukesmith.xyz/index.xml")
-  cfg.write()
-  meta.write()

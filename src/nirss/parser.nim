@@ -73,10 +73,10 @@ proc parse*(source: string): Channel =
   ].toHashSet()
   for elem in channel:
     if elem.tag in ChannelElements:
-      setObjectField(result, elem.tag, elem.innerText())
+      result.setObjectField(elem.tag, elem.innerText())
     if elem.tag == "item":
       var item = Item()
       for itemElem in elem:
         if itemElem.tag in ItemElements:
-          setObjectField(item, itemElem.tag, itemElem.innerText())
+          item.setObjectField(itemElem.tag, itemElem.innerText())
       result.items.add(item)
