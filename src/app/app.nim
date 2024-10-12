@@ -3,6 +3,7 @@ import print
 
 import ../nirss/config
 import ../nirss/api
+import ../nirss/parser
 
 type AppStateKind = enum
   feeds
@@ -18,8 +19,7 @@ type AppState = object
 
 type App = object
   state: AppState
-  meta: Meta
-  config: Config
+  config: MetaConfig
   running: bool
 
   stateChanged = false
@@ -33,7 +33,7 @@ proc getFeedContent(app: App, feed: Feed): string =
   var cache {.global.} = initTable[string, string]()
   if cache.hasKey(feed.url):
     return cache[feed.url]
-  cache[feed.url] = getFeedContent(app.config, app.meta, feed.url)
+  cache[feed.url] = getFeedContent(app.config.cfg, app.config.meta, feed.url)
   return cache[feed.url]
 
 proc update*(app: var App) =
@@ -81,17 +81,18 @@ proc run*() =
   defer: onExit()
   eraseScreen()
 
-  var app = App(
-    state: AppState(kind: feeds),
-    meta: Meta.load(),
-    config: Config.load(),
-    running: true
-  )
-  app.render()
+  withConfig(config):
+    var app = App(
+      state: AppState(kind: feeds),
+      config: config,
+      running: true
+    )
 
-  while app.running:
-    app.update()
     app.render()
+
+    while app.running:
+      app.update()
+      app.render()
 
 when isMainModule:
   run()
