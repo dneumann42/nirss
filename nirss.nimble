@@ -1,15 +1,12 @@
 # Package
 
-version = "0.0.0"
-author = "dneumann42"
-description = "A new awesome nimble package"
-license = "MIT"
-srcDir = "src"
-bin = @["nirss"]
+version       = "0.0.0"
+author        = "dneumann"
+description   = "RSS feed manager"
+license       = "MIT"
+srcDir        = "src"
+
 
 # Dependencies
 
-requires "nim >= 2.0.8"
-requires "cligen"
-requires "results"
-requires "cascade"
+requires "nim >= 2.2.0"

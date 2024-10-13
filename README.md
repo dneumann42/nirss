@@ -1,11 +1,27 @@
 # Nirss
 
-**Warning** This is a WIP project
+A rss feed dowloader and manager with a tui and cli interface.
 
-Nim RSS tool
+## Nirss is a library
 
-## Features
+Use nirss as a library for your own rss projects
 
-+ [X] Sync RSS feeds respecting modified headers
-+ [ ] Manage feed lists
-+ [ ] Generates a HTML dashboard for feeds
+```nim
+import nirss
+
+# config is saved to '~/.config/nirss' 
+withConfig(cfg):
+    ## Add a new feed to the config and downloads the feed
+    cfg.addFeed(meta, "<example@rss.xml>", update = true)
+    echo(cfg.feeds())
+```
+
+## Nirss is a cli
+
+`nim r src/app/cli --add:"<example@rss.xml>"`
+
+## Nirss is a tui
+
+`nim r src/app/app`
+
+![app](screenshot.png)
