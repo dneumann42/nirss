@@ -26,21 +26,28 @@ type App = object
   state: AppState
   config: MetaConfig
   running: bool
+  redraw = true
 
   stateChanged = false
   itemCount = 0
   feedCursor = 0
+  padding = 8
 
 var states: seq[AppState] = @[]
 proc changeState(app: var App, newState: AppState) =
   states.add(app.state)
   app.state = newState
   app.stateChanged = true
+  app.redraw = true
 
-proc popState(app: var App) =
-  let state = states.pop()
-  app.state = state
-  app.stateChanged = true
+proc popState(app: var App) {.raises: [].} =
+  try:
+    let state = states.pop()
+    app.state = state
+    app.stateChanged = true
+    app.redraw = true
+  except:
+    echo getCurrentExceptionMsg()
 
 proc getFeedContent(app: App, feed: Feed): string =
   var cache {.global.} = initTable[string, string]()
@@ -61,6 +68,7 @@ proc update*(app: var App) =
   let ch = getch()
 
   app.stateChanged = false
+  app.redraw = false
 
   if app.state.kind == channel:
     let state = app.state
@@ -73,8 +81,11 @@ proc update*(app: var App) =
         app.state.itemCursor = euclMod((app.state.itemCursor + d), app.itemCount)
       of item:
         app.state.scroll += d
+        if app.state.scroll < 0:
+          app.state.scroll = 0
       else:
         app.feedCursor = euclMod((app.feedCursor + d), app.config.feeds.len())
+    app.redraw = true
 
   if ch == 'q':
     app.running = false
@@ -97,7 +108,6 @@ proc update*(app: var App) =
         app.changeState(AppState(kind: item, item: channel.items[app.state.itemCursor].some()))
       else:
         discard
-
   if ch == 'h':
     app.popState()
 
@@ -125,19 +135,20 @@ proc renderChannel*(app: App) =
     if idx == state.itemCursor - rangeMin:
       stdout.styledWrite(fgBlack, bgWhite, item.title)
     else:
-      stdout.write(item.title)
-    stdout.write(" ".repeat(terminalWidth() - item.title.len()))
+      let w = min(terminalWidth() - 2, item.title.len)
+      stdout.write(item.title.substr(0, w))
     if idx < height:
       stdout.write("\n")
-  setCursorPos(0, state.itemCursor - rangeMin + 1)
+      stdout.eraseLine()
 
-proc renderNode*(node: XmlNode) =
+proc renderNode*(node: XmlNode, content: var string) =
   case node.kind:
     of xnElement:
       for sub in node:
-        renderNode(sub)
+        renderNode(sub, content)
+        content &= "\n"
     of xnText:
-      stdout.styledWriteLine(node.innerText)
+      content &= node.innerText
     else:
       echo("unexpected kind: " & $node.kind)
 
@@ -146,7 +157,20 @@ proc renderItem*(app: App) =
   assert(app.state.item.isSome())
   let item = app.state.item.get()
   let xml = parseHtml(item.description)
-  renderNode(xml)
+
+  var content = ""
+  renderNode(xml, content)
+  let lines = content.splitLines() 
+
+  var idx = 0 
+  for line in lines[max(0, min(app.state.scroll, lines.len))..<lines.len]:
+    idx += 1
+    if idx > terminalHeight() - 2:
+      continue
+    # truncate, scroll when cursor is hovering
+    let w = min(terminalWidth() - 1, line.len())
+    stdout.eraseLine()
+    stdout.writeLine(line.substr(0, w))
   
 const RenderStates = [
   feeds: renderFeedsState,
@@ -159,7 +183,8 @@ proc render*(app: App) =
   setCursorPos(0, 0)
   if app.stateChanged:
     eraseScreen()
-  RenderStates[app.state.kind](app)
+  if app.redraw:
+    RenderStates[app.state.kind](app)
 
 proc run*() =
   proc onExit() =
