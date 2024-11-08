@@ -156,7 +156,10 @@ proc renderItem*(app: App) =
   assert(app.state.kind == item)
   assert(app.state.item.isSome())
   let item = app.state.item.get()
-  let xml = parseHtml(item.description)
+
+  var xml = parseHtml(item.description)
+  if xml.kind == xnCData:
+    xml = parseHtml(xml.text)
 
   var content = ""
   renderNode(xml, content)

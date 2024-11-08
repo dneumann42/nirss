@@ -3,6 +3,9 @@ import config, print
 
 type ParseFeedError* = object of CatchableError
 
+## TODO: implementation of the duplin core metadata
+## https://www.dublincore.org/specifications/dublin-core/dces/
+
 ## item or entry
 type 
   Item* = object
@@ -78,5 +81,15 @@ proc parse*(source: string): Channel =
       var item = Item()
       for itemElem in elem:
         if itemElem.tag in ItemElements:
-          item.setObjectField(itemElem.tag, itemElem.innerText())
+
+          var content = itemElem.innerText()
+          if itemElem.len > 0:
+            var inner = itemElem[0]
+            if inner.kind == xnCData:
+              content = inner.text
+          item.setObjectField(itemElem.tag, content)
+
+        # https://www.dublincore.org/specifications/dublin-core/dcmi-terms/elements11/creator/
+        elif itemElem.tag == "dc:creator":
+          item.author = itemElem.innerText()
       result.items.add(item)
