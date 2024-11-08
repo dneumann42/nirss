@@ -112,6 +112,9 @@ proc update*(app: var App) =
     app.popState()
 
 proc renderFeedsState*(app: App) =
+  setCursorPos(0, 0)
+  stdout.styledWriteLine(styleBright, styleUnderscore, "RSS Feeds")
+  setCursorPos(0, 1)
   for idx, feed in enumerate(app.config.feeds):
     if idx == app.feedCursor:
       stdout.styledWriteLine(fgBlack, bgWhite, feed.url)
@@ -146,6 +149,11 @@ proc renderNode*(node: XmlNode, content: var string) =
     of xnElement:
       for sub in node:
         renderNode(sub, content)
+        if sub.kind == xnText:
+          continue
+        if sub.kind == xnElement:
+          if sub.tag in ["em", "span"]:
+            continue
         content &= "\n"
     of xnText:
       content &= node.innerText

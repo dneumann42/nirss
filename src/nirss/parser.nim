@@ -5,6 +5,8 @@ type ParseFeedError* = object of CatchableError
 
 ## TODO: implementation of the duplin core metadata
 ## https://www.dublincore.org/specifications/dublin-core/dces/
+## TODO: media tags
+## https://www.rssboard.org/media-rss
 
 ## item or entry
 type 
