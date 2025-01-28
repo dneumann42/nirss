@@ -67,8 +67,10 @@ proc parse*(source: string): Channel =
   result = Channel()
   var xml = parseXml(source)
   assert(xml.len == 1 and xml.tag() == "rss")
+
   let channel = xml[0]
   assert(channel.tag() == "channel")
+
   const ChannelElements = [
       "title", "link", "description", "generator", "langauge", "copywrite", "managingEditor", "webMaster", "pubDate", "lastBuildDate", "category", "docs", "cloud", "ttl", "image", "ratings", "skipHours", "skipDays"
   ].toHashSet()
@@ -76,6 +78,7 @@ proc parse*(source: string): Channel =
   const ItemElements = [
       "title", "link", "description", "author", "category", "comments", "enclosure", "guid", "pubDate", "source"
   ].toHashSet()
+
   for elem in channel:
     if elem.tag in ChannelElements:
       result.setObjectField(elem.tag, elem.innerText())

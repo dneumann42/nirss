@@ -34,6 +34,7 @@ type App = object
   padding = 8
 
 var states: seq[AppState] = @[]
+
 proc changeState(app: var App, newState: AppState) =
   states.add(app.state)
   app.state = newState
@@ -115,8 +116,15 @@ proc renderFeedsState*(app: App) =
   setCursorPos(0, 0)
   stdout.styledWriteLine(styleBright, styleUnderscore, "RSS Feeds")
   setCursorPos(0, 1)
-  for idx, feed in enumerate(app.config.feeds):
+
+  let height = terminalHeight() - 3
+  let rangeMin = if app.feedCursor > height - 4: app.feedCursor - (height - 4) else: 0
+
+  for idx, feed in enumerate(app.config.feeds[rangeMin..<app.config.feeds.len()]):
+    if idx > height:
+      break
     if idx == app.feedCursor:
+      stdout.eraseLine()
       stdout.styledWriteLine(fgBlack, bgWhite, feed.url)
     else:
       stdout.writeLine(feed.url)
