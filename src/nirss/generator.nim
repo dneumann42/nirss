@@ -51,21 +51,29 @@ proc generate*() =
         title("Dashboard"),
         style(
         """
-        body { margin: 0; }
+        body { margin: 2em; }
         p { margin: 0; padding: 0; }
         h1 { margin: 0; padding: 0; }
         h2 { margin: 0; padding: 0; }
         h3 { margin: 0; padding: 0; }
-        .header-container { display: flex; flex-direction: row; align-items: center; justify-content: center; }
+        .header-container { 
+          display: flex; 
+          flex-direction: row; 
+          align-items: center; 
+          justify-content: center; 
+          margin-bottom: 2em;
+        }
         .feed-card-container {
           display: flex;
           flex-direction: column;
           row-gap: 1em;
+          padding: 1em;
+          border: 1px solid black;
         }
         .feeds-container {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 2em;
+          gap: 1em;
         }
         """
         )
