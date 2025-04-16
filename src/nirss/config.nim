@@ -1,22 +1,28 @@
-import std/[os, json, logging, tables, macros]
+import std / [ os, json, logging, tables, macros, options ]
 import constants
-export tables, json
+export tables, json, options
 
 type URL = string
 
 type
   Feed* = object
     url*: URL
+
   FeedMeta* = object
     lastModified*: string
     etag*: string
+
   Config* = object
     feeds*: seq[Feed]
     appConfig*: AppConfig
+
   Meta* = object
     feeds*: Table[URL, FeedMeta]
+
   AppConfig* = object
-    bindings: Table[string, string]
+    repo*: Option[string]
+    bindings*: Table[string, string]
+
   MetaConfig* = object
     cfg*: Config
     meta*: Meta

@@ -1,4 +1,4 @@
-import std/[terminal, enumerate, math, options, tables, strutils, htmlparser, xmltree]
+import std / [ terminal, enumerate, math, options, tables, strutils, htmlparser, xmltree ]
 import print
 
 import ../nirss/config

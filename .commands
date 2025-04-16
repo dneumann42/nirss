@@ -1,0 +1,1 @@
+nim r src/app/cli.nim gen

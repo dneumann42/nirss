@@ -14,12 +14,12 @@ proc run() =
         elif key == "list" or key == "l":
           for f in cfg.feeds:
             print(f)
+        elif key == "gen" or key == "g":
+          generate()
       if kind == cmdLongOption or kind == cmdShortOption:
         if key == "add" or key == "a":
           cfg.addFeed(val)
           echo("Added feed.")
-        elif key == "gen" or key == "g":
-          generate()
 
     if help:
       echo("add update list")
