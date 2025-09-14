@@ -1,9 +1,12 @@
-import std/[os, json, asyncdispatch, httpclient, strutils, options, sequtils, logging, strformat, base64, uri, algorithm, sugar]
-import constants, config, print
+import
+  std/[
+    os, json, asyncdispatch, httpclient, strutils, options, sequtils, logging,
+    strformat, base64, uri, algorithm, sugar,
+  ]
+import constants, config
 export config
 
-type
-  InvalidURL = object of Exception
+type InvalidURL = object of Exception
 
 proc getString(headers: HttpHeaders, key: string): Option[string] =
   if not headers.hasKey(key):
@@ -45,8 +48,9 @@ proc updateFeed*(feed: Feed, meta: Meta): Future[(Feed, FeedMeta)] {.async.} =
 
   let newMeta = FeedMeta(
     lastModified: response.headers.getLastModified().get(feedMeta.lastModified),
-    etag: response.headers.getETag().get(feedMeta.etag)
+    etag: response.headers.getETag().get(feedMeta.etag),
   )
+  echo "Updated feed: " & feed.url
   (feed, newMeta)
 
 proc updateMetas(cfg: var Config, meta: var Meta) =
@@ -63,7 +67,9 @@ proc updateFeeds*(cfg: var Config, meta: var Meta) =
 proc updateFeeds*(cfg: var MetaConfig) =
   updateFeeds(cfg.cfg, cfg.meta)
 
-proc addFeed*(cfg: var Config, meta: var Meta, url: string, update = true) {.raises: [ValueError, Exception].} =
+proc addFeed*(
+    cfg: var Config, meta: var Meta, url: string, update = true
+) {.raises: [ValueError, Exception].} =
   if cfg.feeds.any((it) => it.url == url):
     return
   let feed = Feed(url: url)
@@ -73,7 +79,9 @@ proc addFeed*(cfg: var Config, meta: var Meta, url: string, update = true) {.rai
   if update:
     updateFeeds(cfg, meta)
 
-proc addFeed*(cfg: var MetaConfig, url: string, update = true) {.raises: [ValueError, Exception].} =
+proc addFeed*(
+    cfg: var MetaConfig, url: string, update = true
+) {.raises: [ValueError, Exception].} =
   addFeed(cfg.cfg, cfg.meta, url, update)
 
 proc getFeedContent*(cfg: Config, meta: Meta, url: string): string =

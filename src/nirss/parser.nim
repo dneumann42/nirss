@@ -1,5 +1,5 @@
 import std/[options, xmlparser, xmltree, xmltree, streams, strutils, macros, sets]
-import config, print
+import config
 
 type ParseFeedError* = object of CatchableError
 
@@ -9,7 +9,7 @@ type ParseFeedError* = object of CatchableError
 ## https://www.rssboard.org/media-rss
 
 ## item or entry
-type 
+type
   Item* = object
     title*: string
     link*: string
@@ -35,7 +35,7 @@ type
     managingEditor*: string
     webMaster*: string
     pubDate*: string
-    lastBuildDate* : string
+    lastBuildDate*: string
     category*: string
     generator*: string
     docs*: string
@@ -44,11 +44,11 @@ type
     image*: string
     ratings*: string
     skipHours*: string
-    skipDays*: string
-    ## textInput is not supported 
+    skipDays*: string ## textInput is not supported 
 
 proc setField[T: string](val: var T, str: string) =
   val = str
+
 proc setField[T](val: var seq[T], str: string) =
   discard
 
@@ -72,11 +72,14 @@ proc parse*(source: string): Channel =
   assert(channel.tag() == "channel")
 
   const ChannelElements = [
-      "title", "link", "description", "generator", "langauge", "copywrite", "managingEditor", "webMaster", "pubDate", "lastBuildDate", "category", "docs", "cloud", "ttl", "image", "ratings", "skipHours", "skipDays"
+    "title", "link", "description", "generator", "langauge", "copywrite",
+    "managingEditor", "webMaster", "pubDate", "lastBuildDate", "category", "docs",
+    "cloud", "ttl", "image", "ratings", "skipHours", "skipDays",
   ].toHashSet()
 
   const ItemElements = [
-      "title", "link", "description", "author", "category", "comments", "enclosure", "guid", "pubDate", "source"
+    "title", "link", "description", "author", "category", "comments", "enclosure",
+    "guid", "pubDate", "source",
   ].toHashSet()
 
   for elem in channel:
@@ -86,7 +89,6 @@ proc parse*(source: string): Channel =
       var item = Item()
       for itemElem in elem:
         if itemElem.tag in ItemElements:
-
           var content = itemElem.innerText()
           if itemElem.len > 0:
             var inner = itemElem[0]

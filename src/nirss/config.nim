@@ -1,10 +1,10 @@
-import std / [ os, json, logging, tables, macros, options ]
+import std/[os, json, logging, tables, macros, options]
 import constants
 export tables, json, options
 
-type URL = string
-
 type
+  URL = string
+
   Feed* = object
     url*: URL
 
@@ -27,22 +27,32 @@ type
     cfg*: Config
     meta*: Meta
 
+  ConfigError = object of CatchableError
+
 proc feeds*(cfg: MetaConfig): seq[Feed] =
   cfg.cfg.feeds
 
-proc write*(cfg: Config) {.raises: [IOError, Exception].} =
+proc write*(cfg: Config) {.raises: [IOError, OSError].} =
   if not dirExists(ConfigDir):
     createDir(ConfigDir)
-  writeFile(ConfigDir / "config.json", (%* cfg).pretty)
-  info("Wrote config")
+  writeFile(ConfigDir / "config.json", (%*cfg).pretty)
+  try:
+    info("Wrote config")
+  except:
+    raise newException(IOError, getCurrentExceptionMsg())
 
-proc write*(meta: Meta) {.raises: [IOError, Exception].} =
+proc write*(meta: Meta) {.raises: [IOError, OSError].} =
   if not dirExists(CacheDir):
     createDir(CacheDir)
-  writeFile(CacheDir / "meta.json", (%* meta).pretty)
-  info("Wrote meta")
+  writeFile(CacheDir / "meta.json", (%*meta).pretty)
+  try:
+    info("Wrote meta")
+  except:
+    raise newException(IOError, getCurrentExceptionMsg())
 
-proc load*(T: type Config, create = true): T {.raises: [OSError, IOError, Exception].} =
+proc load*(
+    T: type Config, create = true
+): T {.raises: [OSError, IOError, KeyError, ValueError].} =
   if create and not fileExists(ConfigDir / "config.json"):
     createDir(ConfigDir)
     T().write()
@@ -50,7 +60,9 @@ proc load*(T: type Config, create = true): T {.raises: [OSError, IOError, Except
   let contents = readFile(ConfigDir / "config.json")
   contents.parseJson.to(T)
 
-proc load*(T: type Meta, create = true): T {.raises: [OSError, IOError, Exception].} =
+proc load*(
+    T: type Meta, create = true
+): T {.raises: [OSError, IOError, KeyError, ValueError].} =
   if create and not fileExists(CacheDir / "meta.json"):
     createDir(CacheDir)
     T().write()
@@ -58,18 +70,17 @@ proc load*(T: type Meta, create = true): T {.raises: [OSError, IOError, Exceptio
   let contents = readFile(CacheDir / "meta.json")
   contents.parseJson.to(T)
 
-proc load*(T: type MetaConfig, create = true): T {.raises: [IOError, Exception].} =
-  T(
-    cfg: Config.load(create),
-    meta: Meta.load(create),
-  )
+proc load*(
+    T: type MetaConfig, create = true
+): T {.raises: [IOError, OSError, KeyError, ValueError].} =
+  T(cfg: Config.load(create), meta: Meta.load(create))
 
-proc write*(cfg: MetaConfig) {.raises: [IOError, Exception].} =
+proc write*(cfg: MetaConfig) {.raises: [IOError, OSError].} =
   cfg.cfg.write()
   cfg.meta.write()
 
 macro withConfig*(ident, blk) =
-  quote do:
+  quote:
     var `ident` = MetaConfig.load()
     `blk`
     `ident`.write()
