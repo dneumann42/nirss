@@ -9,6 +9,7 @@ let nirssCommands =
   @[
     defineCommand("u", "update", description = "Update configured RSS feeds"),
     defineCommand("l", "list", description = "  List the configured RSS feeds"),
+    defineCommand("g", "generate", description = "Generates a html file of the feeds"),
     defineArgument("add", description = "      Add a new feed to the config"),
     defineCommand("h", "help", description = "  Shows this help screen"),
   ]
@@ -36,6 +37,8 @@ proc handleCommand(command: NirssCommand, arguments: seq[NirssCommand]) =
     of "list":
       for feed in cfg.cfg.feeds:
         echo feed
+    of "generate":
+      generate()
     of "help":
       printHelp(nirssCommands)
     else:
